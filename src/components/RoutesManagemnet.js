@@ -9,6 +9,7 @@ const RoutesManagement = () => {
         estimated_time: '',
     });
     const [errors, setErrors] = useState({});
+    const [detailedRoute, setDetailedRoute] = useState(null);
 
     const fetchRoutes = async () => {
         try {
@@ -93,6 +94,23 @@ const RoutesManagement = () => {
         setErrors({ ...errors, [name]: validateField(name, value) });
     };
 
+    const fetchedRouteDetails = async (id) => {
+        try{
+            const response = await fetch(`http://localhost:5000/routes/${id}`);
+            if (!response.ok){
+                throw new Error('Http error!');
+            }
+            const data = await response.json();
+            setDetailedRoute(data);
+        } catch (error){
+            console.error('Error fetching.')
+        }
+    }
+
+
+
+
+
     useEffect(() => {
         fetchRoutes();
     }, []);
@@ -159,10 +177,23 @@ const RoutesManagement = () => {
                             {route.origin} to {route.destination} - {route.distance_km} km - {route.estimated_time} hours
                             <button onClick={() => updateRoute(route.id)}>Update</button>
                             <button onClick={() => deleteRoute(route.id)}>Delete</button>
+                            <button onClick={() => fetchedRouteDetails(route.id)}>Show Info</button>
                         </li>
                     ))}
                 </ul>
             </div>
+            {/* Route Details */}
+            {detailedRoute && (
+                <div>
+                    <h2>Route Details</h2>
+                    <p><strong>ID:</strong> {detailedRoute.id}</p>
+                    <p><strong>Origin:</strong> {detailedRoute.origin}</p>
+                    <p><strong>Destination:</strong> {detailedRoute.destination}</p>
+                    <p><strong>Distance(km):</strong> {detailedRoute.distance_km}</p>
+                    <p><strong>Estimated Time(Hours):</strong> {detailedRoute.estimated_time}</p>
+                    <button onClick={() => setDetailedRoute(null)}>Close Details</button>
+                </div>
+            )}
         </div>
     );
 };

@@ -10,6 +10,7 @@ const DriverManagement = () => {
         status: 'available',
     });
     const [errors, setErrors] = useState({});
+    const [detailedDriver, setDetailedDriver] = useState(null);
 
     const fetchDrivers = async () => {
         try {
@@ -99,6 +100,19 @@ const DriverManagement = () => {
         setErrors({ ...errors, [name]: validateField(name, value) });
     };
 
+    const fetchDriverDetails = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/drivers/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setDetailedDriver(data);
+        } catch (error) {
+            console.error('Error fetching driver details:', error);
+        }
+    };
+
     useEffect(() => {
         fetchDrivers();
     }, []);
@@ -179,10 +193,24 @@ const DriverManagement = () => {
                             {driver.first_name} {driver.last_name} - {driver.license_number} - {driver.phone_number} - {driver.status}
                             <button onClick={() => updateDriver(driver.id)}>Update</button>
                             <button onClick={() => deleteDriver(driver.id)}>Delete</button>
+                            <button onClick={() => fetchDriverDetails(driver.id)}>Show Info</button>
                         </li>
                     ))}
                 </ul>
             </div>
+            {/* Driver Details */}
+            {detailedDriver && (
+                <div>
+                    <h2>Driver Details</h2>
+                    <p><strong>ID:</strong> {detailedDriver.id}</p>
+                    <p><strong>First Name:</strong> {detailedDriver.first_name}</p>
+                    <p><strong>Last Name:</strong> {detailedDriver.last_name}</p>
+                    <p><strong>License Number:</strong> {detailedDriver.license_number}</p>
+                    <p><strong>Phone Number:</strong> {detailedDriver.phone_number}</p>
+                    <p><strong>Status:</strong> {detailedDriver.status}</p>
+                    <button onClick={() => setDetailedDriver(null)}>Close Details</button>
+                </div>
+            )}
         </div>
     );
 };

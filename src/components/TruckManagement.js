@@ -10,6 +10,7 @@ const TruckManagement = () => {
     status: 'active',
   });
   const [errors, setErrors] = useState({});
+  const [detailedTruck, setDetailedTruck] = useState(null);
 
   const fetchTrucks = async () => {
     try {
@@ -100,6 +101,19 @@ const TruckManagement = () => {
     setErrors({ ...errors, [name]: validateField(name, value) });
   };
 
+  const fetchTruckDetails = async (id) => {
+    try{
+      const response = await fetch(`http://localhost:5000/trucks/${id}`);
+      if(!response.ok) {
+        throw new Error('Error');
+      }
+      const data = await response.json();
+      setDetailedTruck(data);
+    } catch (error) {
+        console.error('Error fetching.')
+    }
+  }
+
   useEffect(() => {
     fetchTrucks();
   }, []);
@@ -175,9 +189,23 @@ const TruckManagement = () => {
                 {truck.plate_number} - {truck.brand} {truck.model} - {truck.capacity}kg - {truck.status}
                 <button onClick={() => updateTruck(truck.id)}>Update</button>
                 <button onClick={() => deleteTruck(truck.id)}>Delete</button>
+                <button onClick={() => fetchTruckDetails(truck.id)}>ShowInfo</button>
               </li>
           ))}
         </ul>
+        {/* Driver Details */}
+        {detailedTruck && (
+            <div>
+              <h2>Truck Details</h2>
+              <p><strong>ID:</strong> {detailedTruck.id}</p>
+              <p><strong>Plate Number:</strong> {detailedTruck.plate_number}</p>
+              <p><strong>Brand:</strong> {detailedTruck.brand}</p>
+              <p><strong>Model:</strong> {detailedTruck.model}</p>
+              <p><strong>Capacity:</strong> {detailedTruck.capacity}</p>
+              <p><strong>Status:</strong> {detailedTruck.status}</p>
+              <button onClick={() => setDetailedTruck(null)}>Close Details</button>
+            </div>
+        )}
       </div>
   );
 };

@@ -10,6 +10,7 @@ const AssignmentManagement = () => {
         status: 'pending',
     });
     const [errors, setErrors] = useState({});
+    const [detailedAssignment, setDetailedAssignment] = useState(null);
 
     const fetchAssignments = async () => {
         try {
@@ -74,6 +75,46 @@ const AssignmentManagement = () => {
         setFormData({ ...formData, [name]: value });
         await handleFieldValidation(e); // Проверяем значение поля на ходу
     };
+
+    const fetchAssignmentDetails = async (id) => {
+        try{
+            const response = await fetch (`http://localhost:5000/assignments/${id}`);
+            if (!response.ok){
+                throw new Error('HTTP error!');
+            }
+            const data = await response.json();
+            setDetailedAssignment(data);
+        } catch(error) {
+            console.error('Error fetching!')
+        }
+    }
+    const updateAssignment = async (id) => {
+        if (!validateForm()) return;
+
+        try {
+            await fetch(`http://localhost:5000/assignments/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            fetchAssignments();
+        } catch (error) {
+            console.error('Error updating driver:', error);
+        }
+    };
+
+    const deleteAssignment = async (id) => {
+        try {
+            await fetch(`http://localhost:5000/assignments/${id}`, {
+                method: 'DELETE',
+            });
+            fetchAssignments();
+        } catch (error) {
+            console.error('Error deleting driver:', error);
+        }
+    };
+
+
 
     useEffect(() => {
         fetchAssignments();
@@ -152,11 +193,26 @@ const AssignmentManagement = () => {
                 <ul>
                     {assignments.map((assignment) => (
                         <li key={assignment.id}>
-                            Truck: {assignment.truck_id}, Driver: {assignment.driver_id}, Route: {assignment.route_id}, Date: {assignment.assignment_date}, Status: {assignment.status}
+                            Truck: {assignment.truck_id}, Driver: {assignment.driver_id}, Route: {assignment.route_id},
+                            Date: {assignment.assignment_date}, Status: {assignment.status}
+                            <button onClick={() => updateAssignment(assignment.id)}>Update</button>
+                            <button onClick={() => deleteAssignment(assignment.id)}>Delete</button>
+                            <button onClick={() => fetchAssignmentDetails(assignment.id)}>Show Info</button>
                         </li>
                     ))}
                 </ul>
             </div>
+            {/* Assignment Details */}
+            {detailedAssignment && (
+                <div>
+                    <h2>Assignment Details</h2>
+                    <p><strong>Truck ID:</strong> {detailedAssignment.truck_id}</p>
+                    <p><strong>Driver ID:</strong> {detailedAssignment.driver_id}</p>
+                    <p><strong>Route ID:</strong> {detailedAssignment.route_id}</p>
+                    <p><strong>Status:</strong> {detailedAssignment.status}</p>
+                    <button onClick={() => setDetailedAssignment(null)}>Close Details</button>
+                </div>
+            )}
         </div>
     );
 };
